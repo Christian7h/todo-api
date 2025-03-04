@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { AUTH_URL } from "../env.ts"; // Importamos la variable correctamente
+import Cookies from "js-cookie"; // Importamos js-cookie
+import { AUTH_URL } from "../env.ts"; // Importamos la variable de entorno
 
-const Register = () => {
+const Login = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -10,12 +11,12 @@ const Register = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    setError(null); // Reiniciar error antes de la petición
+    setError(null);
 
     try {
-      console.log("AUTH_URL:", AUTH_URL); // Debug URL
+      console.log("AUTH_URL:", AUTH_URL);
 
-      const response = await fetch(`${AUTH_URL}/register`, {
+      const response = await fetch(`${AUTH_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -26,14 +27,20 @@ const Register = () => {
       if (!response.ok) {
         if (contentType && contentType.includes("application/json")) {
           const data = await response.json();
-          setError(data.message || "Error al registrarse");
+          setError(data.message || "Error al iniciar sesión");
         } else {
           setError("Error inesperado. El servidor no devolvió un JSON válido.");
         }
         return;
       }
 
-      window.location.href = "/login";
+      const data = await response.json();
+      
+      // Guardamos el token en cookies con js-cookie
+      Cookies.set("token", data.token, { expires: 1, path: "/" }); // Expira en 1 día
+
+      // Redirigir a la página principal
+      window.location.href = "/";
     } catch (err) {
       console.error("Error en la petición:", err);
       setError("Error de conexión. Verifica tu red.");
@@ -45,10 +52,8 @@ const Register = () => {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-md overflow-hidden p-8">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Registrarse</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Crea tu cuenta para comenzar a organizar tus tareas
-            </p>
+            <h1 className="text-2xl font-bold text-gray-800">Iniciar Sesión</h1>
+            <p className="mt-2 text-sm text-gray-600">Accede a tu cuenta para gestionar tus tareas</p>
           </div>
 
           {error && <p className="bg-red-50 text-red-500 p-3 rounded text-center text-sm mb-6">{error}</p>}
@@ -83,38 +88,36 @@ const Register = () => {
               />
             </div>
 
-            <div className="flex items-start">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 mt-1 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                Acepto los{" "}
-                <a href="/terms" className="font-medium text-indigo-600 hover:text-indigo-500">
-                  Términos de servicio
-                </a>{" "}
-                y la{" "}
-                <a href="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500">
-                  Política de privacidad
-                </a>
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                  Recordarme
+                </label>
+              </div>
+
+              <a href="/forgot-password" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                ¿Olvidaste tu contraseña?
+              </a>
             </div>
 
             <button
               type="submit"
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
             >
-              Crear cuenta
+              Iniciar Sesión
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-600">
-            ¿Ya tienes cuenta?{" "}
-            <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Inicia sesión
+            ¿No tienes cuenta?{" "}
+            <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Regístrate
             </a>
           </p>
         </div>
@@ -127,4 +130,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
