@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Cookies from "js-cookie"; // Importamos js-cookie
-import { AUTH_URL } from "../env.ts"; // Importamos la variable de entorno
 
 const Login = () => {
   const [error, setError] = useState<string | null>(null);
@@ -14,9 +13,8 @@ const Login = () => {
     setError(null);
 
     try {
-      console.log("AUTH_URL:", AUTH_URL);
 
-      const response = await fetch(`${AUTH_URL}/login`, {
+      const response = await fetch(`https://nodejs-todo-api-e6206be79a01.herokuapp.com/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

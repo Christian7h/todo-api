@@ -25,7 +25,7 @@ const TodoPage = () => {
       }
 
       try {
-        const response = await fetch(`${API_URL}`, {
+        const response = await fetch(`https://nodejs-todo-api-e6206be79a01.herokuapp.com/api/tasks`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -53,7 +53,7 @@ const TodoPage = () => {
     const description = formData.get("description") as string;
 
     try {
-      const response = await fetch(`${API_URL}`, {
+      const response = await fetch(`https://nodejs-todo-api-e6206be79a01.herokuapp.com/api/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ const TodoPage = () => {
   // Eliminar tarea
   const handleDeleteTask = async (taskId: string) => {
     try {
-      const response = await fetch(`${API_URL}/${taskId}`, {
+      const response = await fetch(`https://nodejs-todo-api-e6206be79a01.herokuapp.com/api/tasks/${taskId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -99,7 +99,7 @@ const TodoPage = () => {
   // Completar tarea
   const handleCompleteTask = async (taskId: string, completed: boolean) => {
     try {
-      const response = await fetch(`${API_URL}/${taskId}`, {
+      const response = await fetch(`https://nodejs-todo-api-e6206be79a01.herokuapp.com/api/tasks/${taskId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
