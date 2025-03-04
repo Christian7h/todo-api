@@ -1,0 +1,40 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+let error = null;
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  const response = await fetch(`${import.meta.env.AUTH_URL}/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    // Guardar el token en una cookie
+    Astro.cookies.set("token", data.token, {
+      httpOnly: false, // Permitir acceso desde JS en el cliente
+      path: "/",
+      maxAge: 60 * 60, // 1 hora
+    });
+    return Astro.redirect("/");
+  } else {
+    const data = await response.json();
+    error = data.message || "Error al iniciar sesión";
+  }
+}
+---
+<Layout title="Iniciar Sesion">
+    <h1>Iniciar Sesión</h1>
+    {error && <p style="color: red">{error}</p>}
+    <form method="POST">
+      <input type="email" name="email" placeholder="Correo" required />
+      <input type="password" name="password" placeholder="Contraseña" required />
+      <button type="submit">Iniciar Sesión</button>
+    </form>
+    <p>¿No tienes cuenta? <a href="/register">Regístrate</a></p>
+</Layout>

@@ -1,0 +1,33 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+let error = null;
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  const response = await fetch(`${import.meta.env.AUTH_URL}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (response.ok) {
+    return Astro.redirect("/login");
+  } else {
+    const data = await response.json();
+    error = data.message || "Error al registrarse";
+  }
+}
+---
+<Layout title="Registro">
+    <h1>Registrarse</h1>
+    {error && <p style="color: red">{error}</p>}
+    <form method="POST">
+      <input type="email" name="email" placeholder="Correo" required />
+      <input type="password" name="password" placeholder="Contraseña" required />
+      <button type="submit">Registrarse</button>
+    </form>
+    <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+</Layout>

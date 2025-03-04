@@ -1,0 +1,13 @@
+---
+const { tasks } = Astro.props;
+---
+
+<ul>
+  {tasks.map((task) => (
+    <li>
+      <strong>{task.title}</strong>: {task.description} 
+      {task.completed ? "(Completada)" : ""}
+      <button class="delete-task" data-task-id={task._id}>Eliminar</button>
+    </li>
+  ))}
+</ul>

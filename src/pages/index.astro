@@ -1,11 +1,99 @@
 ---
-import Welcome from '../components/Welcome.astro';
+import TaskList from '../components/TaskList.astro';
 import Layout from '../layouts/Layout.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// Obtener el token desde la cookie
+const token = Astro.cookies.get("token")?.value;
+
+if (!token) {
+  return Astro.redirect("/login");
+}
+
+let tasks = [];
+try {
+  const response = await fetch(`${import.meta.env.API_URL}`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) throw new Error("Error al obtener tareas");
+  const data = await response.json();
+  tasks = data.tasks || [];
+} catch (error) {
+  console.error(error);
+  tasks = [];
+}
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Tareas">
+  <h1>Mis Tareas</h1>
+
+  <form id="taskForm">
+    <input type="text" name="title" placeholder="Título" required />
+    <input type="text" name="description" placeholder="Descripción" />
+    <button type="submit">Agregar Tarea</button>
+  </form>
+
+  <TaskList tasks={tasks} />
+
+  <button id="logout">Cerrar Sesión</button>
+
+  <script type="module">
+    // Crear tarea
+    document.getElementById("taskForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const title = formData.get("title");
+      const description = formData.get("description");
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      const response = await fetch(`http://localhost:3002/api/tasks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, description }),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        alert("Error al agregar la tarea");
+      }
+    });
+
+    // Eliminar tarea
+    document.querySelectorAll(".delete-task").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const taskId = button.getAttribute("data-task-id");
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("token="))
+          ?.split("=")[1];
+
+        const response = await fetch(`http://localhost:3002/api/tasks/${taskId}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          window.location.reload(); // Recarga para actualizar la lista
+        } else {
+          alert("Error al eliminar la tarea");
+        }
+      });
+    });
+
+    // Cerrar sesión
+    document.getElementById("logout").addEventListener("click", () => {
+      document.cookie = "token=; Max-Age=0; path=/";
+      window.location.href = "/login";
+    });
+  </script>
 </Layout>
